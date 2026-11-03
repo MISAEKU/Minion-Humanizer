@@ -1,0 +1,58 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project Sdk="Dalamud.NET.Sdk/15.0.0">
+
+  <!--
+    Dalamud API Level 15 / FFXIV 7.5 / .NET 10
+    如果你装的是别的 API Level，把 SDK 版本改成对应的大版本号即可（如 Dalamud.NET.Sdk/14.0.0）。
+  -->
+
+  <!--
+    程序集来源（DalamudLibPath）由 Dalamud.NET.Sdk 决定，默认找国际服：
+      %APPDATA%\XIVLauncher\addon\Hooks\dev\
+    下面这段在默认路径不存在时，自动回退到：
+      1) 国服 XIVLauncherCN 的 dev 目录
+      2) 环境变量 DALAMUD_HOME 指定的目录（SDK 自己也认这个变量）
+
+    注意这里有第二个坑：Dalamud.NET.Sdk 的 Sdk.props 在设置 DalamudLibPath 的
+    同一段里就把 AssemblySearchPaths 展开成了字面量，所以只改 DalamudLibPath
+    不会改变引用搜索路径（引用会去国际服目录找，报 MSB3245）。必须同时补
+    AssemblySearchPaths，本工程才能在国服环境下直接 build。
+  -->
+  <PropertyGroup>
+    <CnDalamudLibPath>$(appdata)\XIVLauncherCN\addon\Hooks\dev\</CnDalamudLibPath>
+    <DalamudLibPath Condition="!Exists('$(DalamudLibPath)') AND Exists('$(CnDalamudLibPath)')">$(CnDalamudLibPath)</DalamudLibPath>
+    <AssemblySearchPaths Condition="Exists('$(CnDalamudLibPath)')">$(AssemblySearchPaths);$(CnDalamudLibPath)</AssemblySearchPaths>
+  </PropertyGroup>
+
+  <Target Name="MinionHumanizerReportDalamudPath" BeforeTargets="BeforeBuild">
+    <Message Text="MinionHumanizer: 使用 Dalamud 程序集目录 = $(DalamudLibPath)" Importance="high" />
+  </Target>
+
+  <PropertyGroup>
+    <Version>1.29.3.0</Version>
+    <AssemblyName>MinionHumanizer</AssemblyName>
+    <RootNamespace>MinionHumanizer</RootNamespace>
+    <Nullable>enable</Nullable>
+    <LangVersion>latest</LangVersion>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- 以下是会被 DalamudPackager 写进 MinionHumanizer.json 的字段 -->
+    <Author>MISAEKU</Author>
+    <Name>Minion Humanizer</Name>
+    <Punchline>把宠物变成可换装的人形，全程跟着你——独立实现，不碰同步工具。</Punchline>
+    <Description>把你自己召唤的宠物（minion）改成人类骨骼模型，于是 Glamourer 那套换装链路对它生效。
+
+本插件的全部代码只做一件事：写 Companion 的 ModelContainer.ModelCharaId + CustomizeData + EquipmentModelIds，然后重建它的绘制对象。
+
+安全设计：
+- 只处理 ObjectKind.Companion 且 Owner 是本地玩家的 actor，绝不触碰玩家/其他玩家；
+- 不注册任何 IPC、不调用 Glamourer/Penumbra 的状态系统，所以没有任何外观数据会被同步工具看到或上传；
+- 不自己创建/持有/销毁任何原生对象，绘制对象始终由游戏拥有；
+- 重建分帧进行（DisableDraw → 等 IsReadyToDraw → EnableDraw → 等 DrawObject），带超时与失败自动还原；
+- 可选地短路游戏的 EnforceKindRestrictions 检查，避免游戏把人类模型"修回去"造成抖动。</Description>
+    <RepoUrl>https://github.com/MISAEKU/Minion-Humanizer</RepoUrl>
+    <Tags>pet;minion;companion;glamour;cosmetic;human</Tags>
+    <CategoryTags>other</CategoryTags>
+  </PropertyGroup>
+
+</Project>

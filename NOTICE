@@ -1,0 +1,72 @@
+NOTICE
+======
+
+MinionHumanizer 是独立重写的实现，没有复制下列项目的源代码。
+但它的做法、关键常量与签名来自这些项目的公开源码，按各自许可在此注明。
+
+--------------------------------------------------------------------------------
+1. Glamourer  —  Apache License 2.0
+   https://github.com/Ottermandias/Glamourer
+   Copyright (c) Ottermandias and contributors
+
+   参考内容：
+   - State/StateManager.cs         —— TurnHuman(ActorState, ...) 的实现
+                                      => ChangeModelId(state, 0, CustomizeArray.Default, nint.Zero, ...)
+   - State/InternalStateEditor.cs  —— ChangeModelId 中针对非人类的闸门
+                                      ("Do not allow turning non-humans human anymore.")
+   - Services/DesignApplier.cs     —— DeniedApplicationReason.TargetNonHuman 闸门
+   - Gui/GlamourerChangelog.cs     —— 1.6.0.0 版本块中删除 "Turn Human" 的原文记录
+
+   这些文件为我们确定了三件事：被删的功能在做什么、它传的参数是什么
+   （modelId = 0）、以及它当初为什么被删。
+
+   Apache-2.0 全文见 https://www.apache.org/licenses/LICENSE-2.0
+   我们未复制其代码，故未包含其 LICENSE 副本；若你后续复制其代码，必须附带。
+
+--------------------------------------------------------------------------------
+2. Brio  —  GNU General Public License v3.0
+   https://github.com/Etheirys/Brio
+   Copyright (c) Minmoose, Asgard and contributors
+
+   参考内容（仅思路与签名，未复制代码）：
+   - Game/Actor/ActorAppearanceService.cs
+       * 写入外观的字段与长度：
+             native->ModelContainer.ModelCharaId = appearance.ModelCharaId;
+             Buffer.MemoryCopy(... native->DrawData.CustomizeData.Data ... , 26);
+             *(ActorEquipment*)native->DrawData.EquipmentModelIds = appearance.Equipment;  // 80 字节
+       * EnforceKindRestrictions 的签名 "E8 ?? ?? ?? ?? 41 B0 ?? 48 8B D6 48 8B"
+         与 "短路该检查以避免破坏 Penumbra 这类工具" 的做法（ApplyNPCHack）
+   - Game/Actor/ActorRedrawService.cs
+       * DisableDraw -> 等待 IsReadyToDraw() -> EnableDraw -> 等待 DrawObject 的分帧重建顺序
+       * 以及不要在同一帧内连续 DisableDraw/EnableDraw 的注意事项
+
+   注意：Brio 采用 GPL-3.0。本插件未复制其任何代码，仅借鉴公开的实现思路与
+   （不可避免的）游戏内存偏移/签名常量。若你打算从 Brio 复制实际代码，则你的
+   整个插件必须改为 GPL-3.0 兼容许可，并随附其 LICENSE 全文。
+
+--------------------------------------------------------------------------------
+3. FFXIVClientStructs  —  MIT License
+   https://github.com/aers/FFXIVClientStructs
+   Copyright (c) FFXIVClientStructs contributors
+
+   结构体布局、字段名与虚函数下标来源，包括但不限于：
+   - Character.ModelContainer / Character.DrawData
+   - ModelContainer.ModelCharaId / ModelCharaId_2 / ModelSkeletonId / ModelSkeletonId_2
+   - DrawDataContainer.CustomizeData (Size 0x1A) / EquipmentModelIds (10 x EquipmentModelId, 8 bytes each)
+   - GameObject.DrawObject / VirtualFunction 12 EnableDraw / 13 DisableDraw / IsReadyToDraw
+
+--------------------------------------------------------------------------------
+4. Dalamud  —  https://github.com/goatcorp/Dalamud
+   插件框架与插件 API。
+
+--------------------------------------------------------------------------------
+5. Penumbra  —  https://github.com/xivdev/Penumbra
+   仅作为其生态约定（对象重绘、collection 与同步工具的交互方式）的背景参考，
+   本插件不依赖 Penumbra，也不调用其 IPC。
+
+--------------------------------------------------------------------------------
+免责声明
+--------------------------------------------------------------------------------
+本插件为第三方非官方工具，与 SQUARE ENIX 无关。
+FINAL FANTASY XIV 是 SQUARE ENIX CO., LTD. 的商标。
+使用第三方插件可能违反游戏服务条款，请自行评估风险。

@@ -1,0 +1,22 @@
+bin/
+obj/
+dist/
+.vs/
+.idea/
+*.user
+*.suo
+packages.lock.json
+
+# 本地开发专用（不入库）
+.snapshots/
+.tmp/
+tools/
+repo-web/
+HANDOVER.md
+*.log
+repo.json
+add-repo.cmd
+autoload.cmd
+remove-dev.cmd
+serve-repo.cmd
+package.cmd
